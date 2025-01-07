@@ -2,10 +2,9 @@ from flask import Flask, redirect, url_for, session, request, jsonify
 from flask_oauthlib.client import OAuth
 #from flask_oauthlib.contrib.apps import github #import to make requests to GitHub's OAuth
 from flask import render_template
-
+import pymongo
 import pprint
 import os
-
 # This code originally from https://github.com/lepture/flask-oauthlib/blob/master/example/github.py
 # Edited by P. Conrad for SPIS 2016 to add getting Client Id and Secret from
 # environment variables, so that this will work on Heroku.
@@ -14,7 +13,7 @@ import os
 app = Flask(__name__)
 
 app.debug = False #Change this to False for production
-#os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' #Remove once done debugging
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' #Remove once done debugging
 
 app.secret_key = os.environ['SECRET_KEY'] #used to sign session cookies
 oauth = OAuth(app)
@@ -33,7 +32,12 @@ github = oauth.remote_app(
     authorize_url='https://github.com/login/oauth/authorize' #URL for github's OAuth login
 )
 
+connection_string = os.environ["MONGO_CONNECTION_STRING"]
+db_name = os.environ["MONGO_DBNAME"]
 
+client = pymongo.MongoClient(connection_string)
+db = client[db_name]
+collection = db['People'] #1. put the name of your collection in the quotes
 #context processors run before templates are rendered and add variable(s) to the template's context
 #context processors must return a dictionary 
 #this context processor adds the variable logged_in to the conext for all templates
@@ -49,7 +53,7 @@ def home():
 #redirect to GitHub's OAuth page and confirm callback URL
 @app.route('/login')
 def login():   
-    return github.authorize(callback=url_for('authorized', _external=True, _scheme='https')) #callback URL must match the pre-configured callback URL
+    return github.authorize(callback=url_for('authorized', _external=True, _scheme='http')) #callback URL must match the pre-configured callback URL
 
 @app.route('/logout')
 def logout():
@@ -84,7 +88,7 @@ def renderPage1():
         user_data_pprint = '';
     return render_template('page1.html',dump_user_data=user_data_pprint)
 
-@app.route('/page2')
+@app.route('/post')
 def renderPage2():
     return render_template('page2.html')
 
@@ -96,7 +100,6 @@ def render_google_verification():
 @github.tokengetter
 def get_github_oauth_token():
     return session['github_token']
-
 
 if __name__ == '__main__':
     app.run()
