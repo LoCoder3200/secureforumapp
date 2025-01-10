@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for, session, request, jsonify
 from flask_oauthlib.client import OAuth
-#from flask_oauthlib.contrib.apps import github #import to make requests to GitHub's OAuth
+from flask_oauthlib.contrib.apps import github #import to make requests to GitHub's OAuth
 from flask import render_template
 import pymongo
 import pprint
@@ -12,7 +12,7 @@ import os
 
 app = Flask(__name__)
 
-app.debug = False #Change this to False for production
+app.debug = True #Change this to False for production
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1' #Remove once done debugging
 
 app.secret_key = os.environ['SECRET_KEY'] #used to sign session cookies
@@ -80,16 +80,21 @@ def authorized():
     return render_template('message.html', message=message)
 
 
-@app.route('/page1')
+@app.route('/page1',methods=['GET','POST'])
 def renderPage1():
-    if 'user_data' in session:
-        user_data_pprint = pprint.pformat(session['user_data'])#format the user data nicely
-    else:
-        user_data_pprint = '';
-    return render_template('page1.html',dump_user_data=user_data_pprint)
+    
+    if "ques1" in request.form:    
+        doc = {'key1':request.form["ques1"]}
+        collection.insert_one(doc)
+    
+    allDocs1 = []
+    for d in collection.find({}):
+        allDocs1.append(d)
+    return render_template('page1.html',allDocs=allDocs1)
 
-@app.route('/post')
+@app.route('/post',methods=['GET','POST'])
 def renderPage2():
+    
     return render_template('page2.html')
 
 @app.route('/googleb4c3aeedcc2dd103.html')

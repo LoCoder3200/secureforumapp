@@ -6,10 +6,19 @@
 
 <h1>Make a post!</h1>
 
-<form action="/post" method="post"> 
-  <label for="fname">Put your post here:</label><br>
-  <input type="text" id="fname" name="fname" value="I like bread!"><br>
-  <input type="submit" value="Submit">
-</form>
+{%if logged_in%}
+<div>
+	<form action="/page1" method="post">
+  <input type="text" name="ques1" ><br>
+  <button type="submit">POST</button>
+	</form>
+</div>
+{%else%}
+<p>login to post on the forum</p>
+{%endif%}
 
+{% for doc in allDocs %}
+	<p>{{doc.key1|e}}</p>
+
+{% endfor %}
 {% endblock %}
